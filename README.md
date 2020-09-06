@@ -1,5 +1,5 @@
-# frus-event-exctraction
-The project will focus on automated ‘text-as-data’ methods for the extrac- tion of discrete political (cooperative and conflictive) interactions (i.e., “who did what to whom, and  where/when”) from a large corpora of political texts. Such extracted events are commonly known as political “event data” in the literature. Examples of already-coded event datasets appear in several of the readings below, as well as here: http://eventdata.utdallas.edu/. These extracted political events are typically assigned a geolocation
+# Political Text Analysis & Event Extraction
+The project will focus on automated ‘text-as-data’ methods for the extrac-tion of discrete political (cooperative and conflictive) interactions (i.e., “who did what to whom, and  where/when”) from a large corpora of political texts. Such extracted events are commonly known as political “event data” in the literature. Examples of already-coded event datasets appear in several of the readings below, as well as here: http://eventdata.utdallas.edu/. These extracted political events are typically assigned a geolocation
 and a date of occurrence down to the calender-day, along with information on each source/target actor for the event (e.g., SYR-Government→SYR-Rebel) and action type
 (e.g., express intent to cooperate, or impose curfew, or use chemical weapons, etc.).
 
