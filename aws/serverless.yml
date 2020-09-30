@@ -1,0 +1,66 @@
+org: desipilla
+app: frus
+service: frus # NOTE: update this with your service name
+
+custom:
+  stage: ${opt:stage, 'dev'} # cli: stage dev default, --stage qa for testing, staging for deployment?
+  pythonRequirements:
+    slim: true
+  efsAccessPoint: fsap-09492460c4b5a7804
+  LocalMountPath: /mnt/efs
+  subnetId: subnet-e914b78f
+  securityGroup: sg-0c30e84ad37cab9ba
+  bucket: frus-corenlp
+
+provider:
+  name: aws
+  runtime: python3.7
+  memorySize: 1024  # MB
+  vpc:
+    securityGroupIds:
+      - ${self:custom.securityGroup}
+    subnetIds:
+      - ${self:custom.subnetId}
+      
+  deploymentBucket:
+    name: desi.${self:provider.region}.lambda-deployment
+
+# you can overwrite defaults here
+#  stage: dev
+  region: us-east-1
+  stackTags:
+    course: posc868
+    author: desi
+    Environment: ${self:provider.stage}
+
+# you can add statements to the Lambda function's IAM Role here
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - "s3:PutObject"
+        - "s3:GetObject"
+        - "s3:ListBucket*"
+      Resource:
+        - "arn:aws:s3:::${self:custom.bucket}"
+        - "arn:aws:s3:::${self:custom.bucket}/*"
+
+  environment:
+    stage: ${self:custom.stage}
+    bucket: ${self:custom.bucket}
+
+functions:
+  parse:
+    handler: parse_docs.handler
+    timeout: 900
+    memorySize: 3008  # MB
+    environment: # Service wide environment variables
+      MNT_DIR: ${self:custom.LocalMountPath}
+
+resources:
+  extensions:
+    ParseLambdaFunction:
+      # Type: AWS::EFS::FileSystem
+      Properties:
+        FileSystemConfigs:
+          - Arn: 'arn:aws:elasticfilesystem:${self:provider.region}:654288102859:access-point/${self:custom.efsAccessPoint}'
+            LocalMountPath: '${self:custom.LocalMountPath}'
