@@ -4,13 +4,13 @@ service: frus # NOTE: update this with your service name
 
 custom:
   stage: ${opt:stage, 'dev'} # cli: stage dev default, --stage qa for testing, staging for deployment?
-  pythonRequirements:
-    slim: true
-  efsAccessPoint: fsap-09492460c4b5a7804
+  efsAccessPoint: fsap-098a2cfb52b911b2e
   LocalMountPath: /mnt/efs
   subnetId: subnet-e914b78f
   securityGroup: sg-0c30e84ad37cab9ba
   bucket: frus-corenlp
+  queueName: frus-unparsed
+  queueUrl: https://sqs.us-east-1.amazonaws.com/654288102859/frus-unparsed
 
 provider:
   name: aws
@@ -44,9 +44,17 @@ provider:
         - "arn:aws:s3:::${self:custom.bucket}"
         - "arn:aws:s3:::${self:custom.bucket}/*"
 
+    - Effect: "Allow"
+      Action:
+        - "sqs:*"
+      Resource: 
+        - "*"
+
   environment:
     stage: ${self:custom.stage}
     bucket: ${self:custom.bucket}
+    queueName: ${self:custom.queueName}
+    queueUrl: ${self:custom.queueUrl}
 
 functions:
   parse:
@@ -55,10 +63,24 @@ functions:
     memorySize: 3008  # MB
     environment: # Service wide environment variables
       MNT_DIR: ${self:custom.LocalMountPath}
+    # provisionedConcurrency: 10
+
+  test:
+    handler: test.handler
+    timeout: 45
+    memorySize: 1024  # MB
+    environment: # Service wide environment variables
+      MNT_DIR: ${self:custom.LocalMountPath}
 
 resources:
   extensions:
     ParseLambdaFunction:
+      # Type: AWS::EFS::FileSystem
+      Properties:
+        FileSystemConfigs:
+          - Arn: 'arn:aws:elasticfilesystem:${self:provider.region}:654288102859:access-point/${self:custom.efsAccessPoint}'
+            LocalMountPath: '${self:custom.LocalMountPath}'
+    TestLambdaFunction:
       # Type: AWS::EFS::FileSystem
       Properties:
         FileSystemConfigs:
