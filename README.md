@@ -75,3 +75,65 @@ This was only one issue; the second was more dire, creating a bottleneck that li
 [ INSERT TABLE 1 ]
 
 **Table 1:** Approximate document parsing speeds when parallelizing the Lambda function in Google Collab.
+
+
+## Results
+In total, 39,826 documents from the Kennedy, Johnson, Nixon, and Ford administrations were parsed. Though those administrations took place from 1961–1976, the documents ranged from 1925–1981.
+
+[ INSERT FIGURE 7 ]
+
+**Figure 7:** The above histograms show the lengths of documents parsed. The left figure shows the difference between the word count of the original documents and the truncated documents (that were parsed by `stanza`). The right figure shows the stacked distribution of truncated word count by cold-war-era  president.
+
+Table 2 displays a variety of summary statistics from the Stanford CoreNLP results. Appendix A contains figures related to this table.
+
+[ INSERT TABLE 2 ]
+
+**Table 2:** The above table highlights some statistics of the text parsing. Notable, 16.08% of all cold-war-era documents were truncated. However, the average document had 44.7 sentences parsed, which should be enough to extract the events of the document. *Entities* refers to all words, punctuation, abbreviations, etc. output by stanza. Lastly, nearly 50 unique proper nouns were referenced in the average document.
+
+Across each cold-war-era president, the most common terminology remained relatively unchanged. These included general language such as *president*, *US*, *United (States)*, *U.S.*, etc. However, a few administration-specific terms were noticeably prevalent. Specifically, the terms *Johnson* and *Vietnam* were popular during President Johnson’s term, and the terms *Kissinger* (the Secretary of State at the time) and *Nixon* were habitually used during President Nixon’s term. Table 3 provides a list of the frequently used proper nouns found in the parsed documents. Appendix B provides more comprehensive details of the term frequencies for each president.
+
+[ INSERT TABLE 3 ]
+
+**Table 3:** Most common proper nouns found in documents from each cold-war-era president. Italicized and bolded terms for each president are those that were not among the 10 most common proper nouns across all cold war presidents.
+
+Let’s look at an example of the parse results obtained by `stanza`. Given the following text:
+```
+Javanese Grand Waffalo Shinzo Abesson has asked the colonial vizarate to look into the alleged spying activities on the Javanese tribes and companies raised by the Wikileaks website in telephone talks with colonial vizar Joel Bowden Wednesday, local media reported.
+```
+we get the results
+```
+[	# List of sentences
+  [	# List of entities within a sentence
+    {	# First entity within sentence 1
+      "id": 1,					# Entity ID within the sentence
+      "text": "Javanese",				# Original text
+      "lemma": "javanese",			# Lemma of the text
+      "upos": "ADJ",				# Universal position tag
+      "xpos": "JJ",				# Tree-bank specific tag
+      "feats": "Degree=Pos",			# Morphological features
+      "head": 2,					# ID of parent word
+      "deprel": "amod",				# Dependency b/w text and head
+      "misc": "start_char=0|end_char=8",	# Location of text
+      "ner": "S-NORP"				# Named entity tag
+    },
+    {	# Second entity within sentence 1
+      "id": 2,
+      "text": "Grand",
+      "lemma": "Grand",
+      "upos": "PROPN",
+      "xpos": "NNP",
+      "feats": "Number=Sing",
+      "head": 3,
+      "deprel": "compound",
+      "misc": "start_char=9|end_char=14",
+      "ner": "O"
+    },
+  ...	# Remaining entities within sentence 1
+  ],
+...	# Remaining sentences within text
+]
+```
+
+The parse result for this document needed in order to pass the document into an event encoder pipeline such as [`Petrach2`](https://github.com/openeventdata/petrarch2/tree/master/petrarch2) is shown in Appendix C.
+
+
