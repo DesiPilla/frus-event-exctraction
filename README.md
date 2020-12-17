@@ -75,7 +75,14 @@ However, there were still many scalability issues. Because of the size of the [E
 
 This was only one issue; the second was more dire, creating a bottleneck that limited the overall ability to process documents in parallel. When using provisioned concurrency, the *CPU credit* balance of the EC2 begins to get used. [An EC2 is initially allotted 576 of CPU credit](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-credits-baseline-concepts.html) (for a `t2.medium` EC2 instance). When an EC2 is not in use, any eroded CPU credit slowly regenerates, up to the original 576 (see Figure 6). Larger EC2 instances have higher maximum credit accruals and quicker accrual rates, yet they tend to become expensive. During this project, we used all 576 of CPU credit, essentially eliminating all functionality of the EC2 and, therefore, our AWS setup. The remaining 5,000 documents pertaining to cold war presidents were carried out with much less parallelization. The Lambda function code was transferred to a Google Collab notebook. By making use of the `multiprocessing` python module, up to 2 documents were able to be processed in parallel. By creating multiple copies of this notebook and running them together, higher parallelization was achievable. The approximate document parsing speeds are shown in Table 1. Note that the queue containing unparsed documents was unaffected by the issues presented by the EFS and EC2.
 
-[ INSERT TABLE 1 ]
+
+| Number of jobs in parallel | Documents parsed per hour |
+|----|----|
+|1   |140 |
+|2   |211 |
+|4   |450 |
+|8   |750 |
+
 
 **Table 1:** Approximate document parsing speeds when parallelizing the Lambda function in Google Collab.
 
@@ -89,13 +96,33 @@ In total, 39,826 documents from the Kennedy, Johnson, Nixon, and Ford administra
 
 Table 2 displays a variety of summary statistics from the Stanford CoreNLP results. Appendix A contains figures related to this table.
 
-[ INSERT TABLE 2 ]
+
+|                                                           |     Kennedy     |     Johnson     |    Nixon-Ford   | All Cold-War Presidents |
+|-----------------------------------------------------------|:---------------:|:---------------:|:---------------:|:-----------------------:|
+|                  Avg. original word count                 |       827       |       920       |      1,329      |          1,074          |
+|                 Avg. truncated word count                 |       706       |       813       |       934       |           839           |
+|    # of documents truncated (% of documents truncated)    | 1,109  (10.86%) | 1,458  (11.91%) | 3,838  (22.09%) |     6,405  (16.08%)     |
+|               Avg. # of entities identified               |       798       |       927       |      1,068      |           956           |
+|                 Avg. # of sentences parsed                |       34.6      |       40.7      |       53.5      |           44.7          |
+| Avg. # of sentences containing a proper noun per document |       23.7      |       27.9      |       33.9      |           29.5          |
+|         Avg. # of unique proper nouns per document        |       41.5      |       49.9      |       54.5      |           49.8          |
 
 **Table 2:** The above table highlights some statistics of the text parsing. Notable, 16.08% of all cold-war-era documents were truncated. However, the average document had 44.7 sentences parsed, which should be enough to extract the events of the document. *Entities* refers to all words, punctuation, abbreviations, etc. output by stanza. Lastly, nearly 50 unique proper nouns were referenced in the average document.
 
 Across each cold-war-era president, the most common terminology remained relatively unchanged. These included general language such as *president*, *US*, *United (States)*, *U.S.*, etc. However, a few administration-specific terms were noticeably prevalent. Specifically, the terms *Johnson* and *Vietnam* were popular during President Johnson’s term, and the terms *Kissinger* (the Secretary of State at the time) and *Nixon* were habitually used during President Nixon’s term. Table 3 provides a list of the frequently used proper nouns found in the parsed documents. Appendix B provides more comprehensive details of the term frequencies for each president.
 
-[ INSERT TABLE 3 ]
+|   Kennedy  |   Johnson  | Nixon-Ford | All Cold-War Presidents |
+|:----------:|:----------:|:----------:|:-----------------------:|
+|  president |  president |  president |        president        |
+|     us     |     us     |  kissinger |        secretary        |
+|  secretary |  secretary |    u.s.    |           u.s.          |
+|   united   |    u.s.    |  secretary |            us           |
+|    u.s.    |   johnson  |     mr.    |        kissinger        |
+|     mr.    |  national  |  national  |           mr.           |
+|    state   |    state   |     us     |         national        |
+|   states   | washington |    nixon   |          united         |
+| washington |   united   | washington |          state          |
+| department |   vietnam  |    state   |        washington       |
 
 **Table 3:** Most common proper nouns found in documents from each cold-war-era president. Italicized and bolded terms for each president are those that were not among the 10 most common proper nouns across all cold war presidents.
 
