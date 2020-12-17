@@ -5,10 +5,13 @@ This special project’s tasks in this case will entail setting up and modifying
 https://github.com/openeventdata/phoenix_pipeline) to fully processes and code a large corpus of U.S. diplomatic cables. 
 The specific tasks in this regard will entail that we:
  1. Re-structure the raw U.S. diplomatic cables (currently structured as CSV files) into a MongoDB.
+    * This had been done, but the MongoDB has since been removed.
  2. Parse the text of each diplomatic cable via Stanford CoreNLP.
+    * This has been done, but must be re-parsed using a more powerful neural pipelin.
  3. Pass the parsed text to a Python-based event coder, such as PETRARCH or PETRARCH2.
+    * On a very small-scale, this has been tested and has worked.
  4. Separately pass the parsed text through automated geolocation extraction software such as Mordacai or CLIFF/CLAVIN.
- 5. Combine all final data and code into a single GitHub repository.
+    * TBD
 
 
 ## Data
@@ -139,3 +142,24 @@ The parse result for this document needed in order to pass the document into an 
 
 ## Future Work
 Though cloud-computing resource limitations created bottlenecks that prevented us from achieving some of our original goals, developments in this area provide the potential for further study. Lambda functions now support instances of up to 10 GB of RAM, which would allow for the full neural pipeline required for proper text-parsing to be completed in AWS. With a scalable infrastructure now a viable method for processing a large number of documents, future studies can parse the documents fully and use the Petrarch2 pipeline to conduct event-encoding analyses. This would allow for a plethora of analyses, as outlined in the course description.
+
+
+## Resources
+
+Below are some videos that may be helpful for setting up the AWS environment.
+
+**Setting up a VPC**
+
+https://www.youtube.com/watch?v=5620yOWWFxU 
+
+**Setting up an EC2 instance**
+
+https://www.youtube.com/watch?v=K9sG4I0EZok 
+
+**Connecting a VPC to the internet**
+
+https://www.youtube.com/watch?v=CafsD6jDZvU 
+
+**Create an EFS and using with Lambda  (highly recommend)**
+
+https://www.youtube.com/watch?v=4cquiuAQBco 
