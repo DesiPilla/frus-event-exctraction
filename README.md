@@ -35,19 +35,19 @@ We chose to truncate all documents to 1600 words before being processed. This wa
 
 ### Data Exploration
 
-[ INSERT FIGURE 1 ]
+![](img/exploration_document_length_hist.jpg)
 
 **Figure 1:** The distribution of document length is displayed in the histogram above. The distribution is heavily right-skewed. Note that the word count data was clipped at 3,000, which can be seen by the spike at the right-tail of the figure. This represents the 2.49% of documents with word-counts over 3,000. 
 
-[ INSERT FIGURE 2 ]
+![](img/exploration_documents_per_decade.jpg)
 
 **Figure 2:** The figure above shows the number of documents available by decade, on a log scale. Notice how the number of documents is very small before 1860 (less than 200 per decade). These documents are dated from before any of the presidents served in office, yet were still assigned to one of the presidents in our dataset. Beginning in 1860, the number of documents per decade ranged from 10,000 to 100,000. However, this number rapidly declined beginning in 1970. This marks the end of the terms served by presidents in our document. Gradual declines from 1940 are partially due to some documents not yet being declassified by the US Department of State, as they are more recent.
 
-[ INSERT FIGURE 3 ]
+![](img/exploration_median_document_length.jpg)
 
 **Figure 3:** The above chart displays the median word count for documents by decade. Aside from 1790 (which only contained a few documents), the word count was relatively similar from 1800 to 1920. There was an increase from 1870-1890. In 1920, the document length began rising rapidly. This comes shortly after the design of the typewriter became standardized.
 
-[ INSERT FIGURE 4 ]
+![](img/exploration_popular_nnp.jpg)
 
 **Figure 4:** The above figure shows the most common word types for documents relating to the Taft administration. The most common were IN (preposition), NNP (Proper Noun, singular), NN (noun, singular), DT (determiner), JJ (adjective), NNS (noun, plural). These word tags were assigned using the `nltk.pos_tag` module.
 
@@ -65,13 +65,13 @@ Two environments were used to conduct the document analysis for this project. Fo
 
 This process was parallelized using *provisioned concurrency*. [Provisioned concurrency](https://lumigo.io/blog/provisioned-concurrency-the-end-of-cold-starts/) essentially creates a virtual machine for a specified number of Lambda functions, each with the initialization code (all lines before the handler function) already run. This eliminates cold starts, which for our Lambda function–specifically version 32–includes loading the neural pipeline. Allocating provisioned concurrency is expensive and must be turned off immediately once all processing is complete. We learned this the hard way, leaving 100 provisioned concurrency running for a week and accumulating a $1,500 bill. The cost for processing the 39,826 documents is roughly $200 when executed properly.
 
-[ INSERT FIGURE 4 ]
+![](img/sqs_monitoring.jpg)
 
 *Figure 4:** Example view of documents being processed. The above figures shot snapshots of the SQS queue monitored in AWS CloudWatch. As the number of concurrent workers increases, the rate of document processing increases.
 
 However, there were still many scalability issues. Because of the size of the [EFS](https://aws.amazon.com/blogs/aws/new-a-shared-file-system-for-your-lambda-functions/) (a feature that only recently was given support for Lamba), the *throughput utilization* limited the ability to provision many concurrent states at once. At most, we could provision 5 new concurrent states every 10-20 minutes to remain within the limitations (see Figure 5). Though not as quick as provisioning 100 concurrent states at once, the processing speed gets quite fast when 75 or more concurrent states are running synchronously. 
 
-[ INSERT FIGURE 5 ]
+![](img/efs_monitoring.jpg)
 
 This was only one issue; the second was more dire, creating a bottleneck that limited the overall ability to process documents in parallel. When using provisioned concurrency, the *CPU credit* balance of the EC2 begins to get used. [An EC2 is initially allotted 576 of CPU credit](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-credits-baseline-concepts.html) (for a `t2.medium` EC2 instance). When an EC2 is not in use, any eroded CPU credit slowly regenerates, up to the original 576 (see Figure 6). Larger EC2 instances have higher maximum credit accruals and quicker accrual rates, yet they tend to become expensive. During this project, we used all 576 of CPU credit, essentially eliminating all functionality of the EC2 and, therefore, our AWS setup. The remaining 5,000 documents pertaining to cold war presidents were carried out with much less parallelization. The Lambda function code was transferred to a Google Collab notebook. By making use of the `multiprocessing` python module, up to 2 documents were able to be processed in parallel. By creating multiple copies of this notebook and running them together, higher parallelization was achievable. The approximate document parsing speeds are shown in Table 1. Note that the queue containing unparsed documents was unaffected by the issues presented by the EFS and EC2.
 
@@ -83,7 +83,7 @@ This was only one issue; the second was more dire, creating a bottleneck that li
 ## Results
 In total, 39,826 documents from the Kennedy, Johnson, Nixon, and Ford administrations were parsed. Though those administrations took place from 1961–1976, the documents ranged from 1925–1981.
 
-[ INSERT FIGURE 7 ]
+![](img/ec2_monitoring.jpg)
 
 **Figure 7:** The above histograms show the lengths of documents parsed. The left figure shows the difference between the word count of the original documents and the truncated documents (that were parsed by `stanza`). The right figure shows the stacked distribution of truncated word count by cold-war-era  president.
 
