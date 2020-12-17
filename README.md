@@ -55,7 +55,7 @@ We chose to truncate all documents to 1600 words before being processed. This wa
 ## Methodology
 Analyses were limited to only those documents pertaining to Presidents Kennedy, Johnson, Nixon, and Ford (combined as Nixon-Ford). This was again due to computing environment constraints, as well as cost limitations. In total, 39,826 documents were parsed (12.3% of all available documents).
 
-The analysis for this project was carried out in Python and made use of Natural Language Processing modules that are readily available. [`Stanza`](https://github.com/stanfordnlp/stanza) is the official library created by Stanford NLP Group for using the Java Stanford CoreNLP software. It provides a Python interface for accessing the neural pipelines. We chose this package, as it allowed us to load a neural pipeline within the RAM constraints of AWS Lambda functions (which was 3 GB during this course, though has [since been increased to 10 GB](https://aws.amazon.com/about-aws/whats-new/2020/12/aws-lambda-supports-10gb-memory-6-vcpu-cores-lambda-functions/#:~:text=AWS%20Lambda%20customers%20can%20now,previous%20limit%20of%203%2C008%20MB.&text=Since%20Lambda%20allocates%20CPU%20power,to%20up%20to%.)). The neural pipeline in stanza can be accessed using:
+The analysis for this project was carried out in Python and made use of Natural Language Processing modules that are readily available. [**Stanza**](https://github.com/stanfordnlp/stanza) is the official library created by Stanford NLP Group for using the Java Stanford CoreNLP software. It provides a Python interface for accessing the neural pipelines. We chose this package, as it allowed us to load a neural pipeline within the RAM constraints of AWS Lambda functions (which was 3 GB during this course, though has [since been increased to 10 GB](https://aws.amazon.com/about-aws/whats-new/2020/12/aws-lambda-supports-10gb-memory-6-vcpu-cores-lambda-functions/#:~:text=AWS%20Lambda%20customers%20can%20now,previous%20limit%20of%203%2C008%20MB.&text=Since%20Lambda%20allocates%20CPU%20power,to%20up%20to%.)). The neural pipeline in stanza can be accessed using:
 ```
 stanza.Pipeline('en', '.', processors="tokenize, pos, lemma, ner, depparse") 
 ```
@@ -137,7 +137,7 @@ we get the results
 ]
 ```
 
-The parse result for this document needed in order to pass the document into an event encoder pipeline such as [`Petrach2`](https://github.com/openeventdata/petrarch2/tree/master/petrarch2) is shown in Appendix C.
+The parse result for this document needed in order to pass the document into an event encoder pipeline such as [**Petrach2**](https://github.com/openeventdata/petrarch2/tree/master/petrarch2) is shown in Appendix C.
 
 
 ## Future Work
