@@ -1,0 +1,341 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "The AWS CloudFormation template for this Serverless application",
+  "Resources": {
+    "ParseLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/frus-dev-parse"
+      }
+    },
+    "TestLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/frus-dev-test"
+      }
+    },
+    "IamRoleLambdaExecution": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": {
+              "Fn::Join": [
+                "-",
+                [
+                  "frus",
+                  "dev",
+                  "lambda"
+                ]
+              ]
+            },
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:CreateLogGroup"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/frus-dev*:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/frus-dev*:*:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:PutObject",
+                    "s3:GetObject",
+                    "s3:ListBucket*"
+                  ],
+                  "Resource": [
+                    "arn:aws:s3:::frus-corenlp",
+                    "arn:aws:s3:::frus-corenlp/*"
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "sqs:*"
+                  ],
+                  "Resource": [
+                    "*"
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "Path": "/",
+        "RoleName": {
+          "Fn::Join": [
+            "-",
+            [
+              "frus",
+              "dev",
+              {
+                "Ref": "AWS::Region"
+              },
+              "lambdaRole"
+            ]
+          ]
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "EnterpriseLogAccessIamRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": "arn:aws:iam::802587217904:root"
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "sts:ExternalId": "ServerlessEnterprise-JYrFbVjR4TQZB0n4Xc"
+                }
+              }
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "LogFilterAccess",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:FilterLogEvents"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "ParseLogGroup",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::GetAtt": [
+                        "TestLogGroup",
+                        "Arn"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "ParseLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": "desi.us-east-1.lambda-deployment",
+          "S3Key": "serverless/frus/dev/1606155341204-2020-11-23T18:15:41.204Z/frus.zip"
+        },
+        "FunctionName": "frus-dev-parse",
+        "Handler": "s_parse.handler",
+        "MemorySize": 3008,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.7",
+        "Timeout": 900,
+        "Environment": {
+          "Variables": {
+            "stage": "dev",
+            "bucket": "frus-corenlp",
+            "queueName": "frus-unparsed",
+            "queueUrl": "https://sqs.us-east-1.amazonaws.com/654288102859/frus-unparsed",
+            "MNT_DIR": "/mnt/efs"
+          }
+        },
+        "VpcConfig": {
+          "SecurityGroupIds": [
+            "sg-0c30e84ad37cab9ba"
+          ],
+          "SubnetIds": [
+            "subnet-9b345095",
+            "subnet-e914b78f"
+          ]
+        },
+        "FileSystemConfigs": [
+          {
+            "Arn": "arn:aws:elasticfilesystem:us-east-1:654288102859:access-point/fsap-098a2cfb52b911b2e",
+            "LocalMountPath": "/mnt/efs"
+          }
+        ]
+      },
+      "DependsOn": [
+        "ParseLogGroup"
+      ]
+    },
+    "ParseLambdaVersionWxzYNcvKjbDGHJn0MtChdnLR2kGQR2ETRLKLUPydo": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "ParseLambdaFunction"
+        },
+        "CodeSha256": "N9UiZdapFG3OYeBMdtC5++sNzplPHWCF3wZG6qQxL8E="
+      }
+    },
+    "TestLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": "desi.us-east-1.lambda-deployment",
+          "S3Key": "serverless/frus/dev/1606155341204-2020-11-23T18:15:41.204Z/frus.zip"
+        },
+        "FunctionName": "frus-dev-test",
+        "Handler": "s_test.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.7",
+        "Timeout": 180,
+        "Environment": {
+          "Variables": {
+            "stage": "dev",
+            "bucket": "frus-corenlp",
+            "queueName": "frus-unparsed",
+            "queueUrl": "https://sqs.us-east-1.amazonaws.com/654288102859/frus-unparsed",
+            "MNT_DIR": "/mnt/efs"
+          }
+        },
+        "VpcConfig": {
+          "SecurityGroupIds": [
+            "sg-0c30e84ad37cab9ba"
+          ],
+          "SubnetIds": [
+            "subnet-9b345095",
+            "subnet-e914b78f"
+          ]
+        },
+        "FileSystemConfigs": [
+          {
+            "Arn": "arn:aws:elasticfilesystem:us-east-1:654288102859:access-point/fsap-098a2cfb52b911b2e",
+            "LocalMountPath": "/mnt/efs"
+          }
+        ]
+      },
+      "DependsOn": [
+        "TestLogGroup"
+      ]
+    },
+    "TestLambdaVersionihKoTzsGNUVNGBpYT7e7JiwOGTSrFcHhoZdZXEFzunI": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "TestLambdaFunction"
+        },
+        "CodeSha256": "N9UiZdapFG3OYeBMdtC5++sNzplPHWCF3wZG6qQxL8E="
+      }
+    },
+    "CloudWatchLogsSubscriptionFilterParseLogGroup": {
+      "Type": "AWS::Logs::SubscriptionFilter",
+      "Properties": {
+        "DestinationArn": "arn:aws:logs:us-east-1:802587217904:destination:JYrFbVjR4TQZB0n4Xc#53wxPPbKWNJTYjDxXR#frus#dev",
+        "FilterPattern": "?\"REPORT RequestId: \" ?\"SERVERLESS_ENTERPRISE\"",
+        "LogGroupName": {
+          "Ref": "ParseLogGroup"
+        }
+      }
+    },
+    "CloudWatchLogsSubscriptionFilterTestLogGroup": {
+      "Type": "AWS::Logs::SubscriptionFilter",
+      "Properties": {
+        "DestinationArn": "arn:aws:logs:us-east-1:802587217904:destination:JYrFbVjR4TQZB0n4Xc#53wxPPbKWNJTYjDxXR#frus#dev",
+        "FilterPattern": "?\"REPORT RequestId: \" ?\"SERVERLESS_ENTERPRISE\"",
+        "LogGroupName": {
+          "Ref": "TestLogGroup"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "ServerlessDeploymentBucketName": {
+      "Value": "desi.us-east-1.lambda-deployment"
+    },
+    "EnterpriseLogAccessIamRole": {
+      "Value": {
+        "Fn::GetAtt": [
+          "EnterpriseLogAccessIamRole",
+          "Arn"
+        ]
+      }
+    },
+    "ParseLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "ParseLambdaVersionWxzYNcvKjbDGHJn0MtChdnLR2kGQR2ETRLKLUPydo"
+      }
+    },
+    "TestLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "TestLambdaVersionihKoTzsGNUVNGBpYT7e7JiwOGTSrFcHhoZdZXEFzunI"
+      }
+    }
+  }
+}

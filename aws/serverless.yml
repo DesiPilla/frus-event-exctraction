@@ -6,7 +6,7 @@ custom:
   stage: ${opt:stage, 'dev'} # cli: stage dev default, --stage qa for testing, staging for deployment?
   efsAccessPoint: fsap-098a2cfb52b911b2e
   LocalMountPath: /mnt/efs
-  subnetId: subnet-e914b78f
+  subnetId: subnet-e914b78f # Availability zone us-east-1f
   securityGroup: sg-0c30e84ad37cab9ba
   bucket: frus-corenlp
   queueName: frus-unparsed
@@ -21,6 +21,7 @@ provider:
       - ${self:custom.securityGroup}
     subnetIds:
       - ${self:custom.subnetId}
+      # - subnet-9b345095
       
   deploymentBucket:
     name: desi.${self:provider.region}.lambda-deployment
@@ -67,7 +68,7 @@ functions:
 
   test:
     handler: test.handler
-    timeout: 45
+    timeout: 180
     memorySize: 1024  # MB
     environment: # Service wide environment variables
       MNT_DIR: ${self:custom.LocalMountPath}
