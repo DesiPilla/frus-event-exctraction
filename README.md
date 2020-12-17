@@ -175,18 +175,11 @@ Though cloud-computing resource limitations created bottlenecks that prevented u
 
 Below are some videos that may be helpful for setting up the AWS environment.
 
-**Setting up a VPC**
-
-https://www.youtube.com/watch?v=5620yOWWFxU 
-
-**Setting up an EC2 instance**
-
-https://www.youtube.com/watch?v=K9sG4I0EZok 
-
-**Connecting a VPC to the internet**
-
-https://www.youtube.com/watch?v=CafsD6jDZvU 
-
-**Create an EFS and using with Lambda  (highly recommend)**
-
-https://www.youtube.com/watch?v=4cquiuAQBco 
+* Setting up a VPC
+  * https://www.youtube.com/watch?v=5620yOWWFxU 
+* Setting up an EC2 instance
+  * https://www.youtube.com/watch?v=K9sG4I0EZok 
+* Connecting a VPC to the internet
+  * https://www.youtube.com/watch?v=CafsD6jDZvU 
+* Create an EFS and using with Lambda  (highly recommend)
+  * https://www.youtube.com/watch?v=4cquiuAQBco 
