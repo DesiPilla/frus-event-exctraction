@@ -137,3 +137,5 @@ we get the results
 The parse result for this document needed in order to pass the document into an event encoder pipeline such as [`Petrach2`](https://github.com/openeventdata/petrarch2/tree/master/petrarch2) is shown in Appendix C.
 
 
+## Future Work
+Though cloud-computing resource limitations created bottlenecks that prevented us from achieving some of our original goals, developments in this area provide the potential for further study. Lambda functions now support instances of up to 10 GB of RAM, which would allow for the full neural pipeline required for proper text-parsing to be completed in AWS. With a scalable infrastructure now a viable method for processing a large number of documents, future studies can parse the documents fully and use the Petrarch2 pipeline to conduct event-encoding analyses. This would allow for a plethora of analyses, as outlined in the course description.
